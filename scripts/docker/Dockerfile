@@ -4,10 +4,16 @@ MAINTAINER Devis Lucato (https://github.com/dluc)
 
 LABEL Tags="Azure,IoT,Solutions,React,SPA"
 
+ARG user=pcsuser
+
+RUN adduser -D -h /home/$user -s /bin/bash $user $user
+
 COPY ./ /app
+RUN chown -R $user.$user /app
 WORKDIR /app
 
 RUN apk update && apk upgrade \
+ && apk add sudo \
  && apk add --no-cache nodejs-npm \
  && npm install \
  && export CI=true \
@@ -24,4 +30,8 @@ RUN apk update && apk upgrade \
 EXPOSE 80 443
 VOLUME /app/logs
 
+RUN echo "$user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
 ENTRYPOINT ["/bin/sh", "/app/run.sh"]
+
+USER $user
